@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Spatie\Permission\PermissionRegistrar;
+use Spatie\Permission\Models\Role;
+use App\Models\User;
+use Spatie\Permission\Traits\HasRoles;
 
 return new class extends Migration
 {
@@ -118,6 +122,19 @@ return new class extends Migration
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
+
+        $this->createAndAssignRole('superAdmin', 'admin');
+    }
+
+    private function createAndAssignRole(string ...$roles)  {
+        foreach ($roles as $role) {
+            $model = new Role();
+            $model->setAttribute('name', $role);
+            $model->save();
+            $user = User::whereId(1)->first();
+            $user->assignRole('superAdmin');
+
+        }
     }
 
     /**
