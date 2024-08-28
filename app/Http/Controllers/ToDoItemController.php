@@ -17,20 +17,52 @@ class ToDoItemController extends Controller
      */
     public function index(Request $request)
     {
+        $categories = Category::get();
+        $appliedFilters = [];
+        //initial query
         //display my data + check for shared with me
-        $toDoItems = ToDoItem::where('user_id', Auth::id())
-            ->orWhereHas('users', function($query) {
+        $toDoItemsQuery = ToDoItem::where(function ($query) {
+            $query->where('user_id', Auth::id())
+            ->orWhereHas('users', function ($query) {
                 $query->where('user_id', Auth::id());
-            })
-            ->orderBy('id', 'DESC')
-            ->withTrashed()
-            ->paginate(10);
+            });
+        })->orderBy('id', 'DESC')->withTrashed();
+
+        //cat filter
+        if (isset($request->category)) {
+            $toDoItemsQuery->whereHas('categories', function($q) use ($request) {
+                $q->where('id', $request->category);
+            });
+            array_push($appliedFilters,$request->category);
+        }
+        //completed filter
+        if (isset($request->is_completed)) {
+            $toDoItemsQuery->where('is_completed', $request->is_completed);
+            array_push($appliedFilters,$request->is_completed);
+        }
+        //my or shared items
+        if (isset($request->ownership)) {
+            if ($request->ownership === 'mine') {
+                // Filter to only include items owned by the authenticated user
+                $toDoItemsQuery->where('user_id', Auth::id());
+            }
+            elseif ($request->ownership === 'shared') {
+                // Filter to only include items shared with the authenticated user
+                $toDoItemsQuery->whereHas('users', function($q) {
+                    $q->where('user_id', Auth::id());
+                });
+            }
+            array_push($appliedFilters,$request->ownership);
+
+        }
+        $toDoItems = $toDoItemsQuery->paginate(10);
+
 
         //add indicator that it has been shared with me or not - bool
         foreach ($toDoItems as $item) {
             $item->is_shared = $item->user_id !== Auth::id();
         }
-        return view('to_do_item.index', compact('toDoItems'));
+        return view('to_do_item.index', compact('toDoItems','categories','appliedFilters'));
 
     }
 
@@ -117,11 +149,15 @@ class ToDoItemController extends Controller
         $toDoItem->update($data);
 
         //handle users
-        if (isset($data['users'])) {
-            $toDoItem->users()->sync($data['users']);
-        } else {
-            $toDoItem->users()->detach();
+        if($toDoItem->user_id == Auth::id()){
+            if (isset($data['users'])) {
+                $toDoItem->users()->sync($data['users']);
+            }
+            else {
+                $toDoItem->users()->detach();
+            }
         }
+
         //handle cats
         if (isset($data['categories'])) {
             $toDoItem->categories()->sync($data['categories']);
@@ -136,7 +172,7 @@ class ToDoItemController extends Controller
     {
         $toDoItem->is_completed = 1;
         $toDoItem->save();
-        return redirect('/todoitems')->with('success', 'Item was successfully completed');
+        return redirect()->back()->with('success', 'Item was successfully completed');
 
     }
 
