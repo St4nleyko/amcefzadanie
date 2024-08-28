@@ -7,6 +7,7 @@ use App\Models\ToDoItem;
 use App\Http\Requests\StoreToDoItemRequest;
 use App\Http\Requests\UpdateToDoItemRequest;
 use App\Models\User;
+use App\Notifications\ItemNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -107,6 +108,8 @@ class ToDoItemController extends Controller
         if (!empty($categoryIds)) {
             $toDoItem->categories()->attach($categoryIds);
         }
+        $this->sendNotification($toDoItem, 'created');
+
         return redirect('/todoitems')->with('success', 'Item was successfully created');
     }
 
@@ -164,6 +167,7 @@ class ToDoItemController extends Controller
         } else {
             $toDoItem->categories()->detach();
         }
+        $this->sendNotification($toDoItem, 'updated');
 
         return redirect('/todoitems')->with('success', 'Item was successfully updated');
 
@@ -172,6 +176,9 @@ class ToDoItemController extends Controller
     {
         $toDoItem->is_completed = 1;
         $toDoItem->save();
+        $this->sendNotification($toDoItem, 'completed');
+
+        // Notify the owner
         return redirect()->back()->with('success', 'Item was successfully completed');
 
     }
@@ -183,14 +190,72 @@ class ToDoItemController extends Controller
     {
         if($isDestroy){
             $toDoItem->delete();
+            $this->sendNotification($toDoItem, 'deleted');
+
             return redirect()->back()->with('success', 'Item was successfully deleted');
         }
         else{
             $toDoItem->restore();
+            $this->sendNotification($toDoItem, 'undeleted');
+
             return redirect()->back()->with('success', 'Item was successfully restored');
         }
     }
 
+    private function sendNotification(ToDoItem $toDoItem, $eventType){
+        $responsiblePerson = Auth::user();
+        $eventInfoArray = [];
+
+        switch ($eventType) {
+            case 'completed':
+                $eventInfoArray = [
+                    'subject' => 'ToDo Item Completed',
+                    'msg' => "The item '{$toDoItem->name}' has been marked as completed by {$responsiblePerson->name}."
+                ];
+                break;
+
+            case 'created':
+                $eventInfoArray = [
+                    'subject' => 'New ToDo Item Created',
+                    'msg' => "A new item '{$toDoItem->name}' has been created by {$responsiblePerson->name}."
+                ];
+                break;
+
+            case 'updated':
+                $eventInfoArray = [
+                    'subject' => 'ToDo Item Updated',
+                    'msg' => "The item '{$toDoItem->name}' has been updated by {$responsiblePerson->name}."
+                ];
+                break;
+
+            case 'deleted':
+                $eventInfoArray = [
+                    'subject' => 'ToDo Item Deleted',
+                    'msg' => "The item '{$toDoItem->name}' has been deleted by {$responsiblePerson->name}."
+                ];
+                break;
+
+            case 'undeleted':
+                $eventInfoArray = [
+                    'subject' => 'ToDo Item Restored',
+                    'msg' => "The item '{$toDoItem->name}' has been restored by {$responsiblePerson->name}."
+                ];
+                break;
+
+            default:
+                $eventInfoArray = [
+                    'subject' => 'ToDo Item modified',
+                    'msg' => "The item '{$toDoItem->name}' has been modified by {$responsiblePerson->name}."
+                ];
+                return;
+        }
+        $userList = collect([$responsiblePerson]);
+        $userList = $userList->merge($toDoItem->users);
+        foreach($userList as $receiver){
+            $receiver->notify(new ItemNotification($toDoItem, $eventInfoArray));
+        }
+
+    }
 
 
 
