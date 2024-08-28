@@ -48,4 +48,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/createuser', [UserController::class, 'createUser'])->name('create.user');
         Route::post('/storeuser', [UserController::class, 'storeUser'])->name('store.user');
     });
+
+    //models routes
+    include 'models/categories.php';
+    include 'models/to_do_items.php';
 });
