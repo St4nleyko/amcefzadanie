@@ -20,6 +20,16 @@
                                 <textarea id="description" type="checkbox"  class="form-control" name="description"></textarea>
                             </div>
                             <div class="form-group ">
+                                <label for="categories" class="col-md-4 col-form-label text-md-right">{{ __('Categories') }}</label>
+                                <div class="">
+                                    <select class="form-select" multiple name="categories[]" id="catSelect">
+                                        @foreach ($categories as $category)
+                                            <option value="{{$category->id}}">{{$category->name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group ">
                                 <label for="users" class="col-md-4 col-form-label text-md-right">{{ __('Users') }}</label>
                                 <div class="">
                                     <select class="form-select" multiple name="users[]" id="userSelect">

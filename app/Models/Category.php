@@ -13,8 +13,8 @@ class Category extends Model
         'description',
     ];
 
-    public function toDoItems(){
-        return $this->hasMany(ToDoItem::class);
-
+    public function todoItems()
+    {
+        return $this->belongsToMany(TodoItem::class, 'category_items');
     }
 }

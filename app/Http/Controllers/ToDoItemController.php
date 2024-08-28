@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\ToDoItem;
 use App\Http\Requests\StoreToDoItemRequest;
 use App\Http\Requests\UpdateToDoItemRequest;
@@ -24,6 +25,7 @@ class ToDoItemController extends Controller
             ->orderBy('id', 'DESC')
             ->withTrashed()
             ->paginate(10);
+
         //add indicator that it has been shared with me or not - bool
         foreach ($toDoItems as $item) {
             $item->is_shared = $item->user_id !== Auth::id();
@@ -37,8 +39,10 @@ class ToDoItemController extends Controller
      */
     public function create()
     {
+        $categories = Category::get();
+
         $users = User::whereNot('id',Auth::id())->get();
-        return view('to_do_item.create', compact('users'));
+        return view('to_do_item.create', compact('users','categories'));
 
     }
 
@@ -56,6 +60,10 @@ class ToDoItemController extends Controller
             $userIds = $data['users'];
             unset($data['users']);
         }
+        if (isset($data['categories'])) {
+            $categoryIds = $data['categories'];
+            unset($data['categories']);
+        }
 
         $data['user_id'] = Auth::id();
         $toDoItem = ToDoItem::create($data);
@@ -63,6 +71,9 @@ class ToDoItemController extends Controller
 
         if (!empty($userIds)) {
             $toDoItem->users()->attach($userIds);
+        }
+        if (!empty($categoryIds)) {
+            $toDoItem->categories()->attach($categoryIds);
         }
         return redirect('/todoitems')->with('success', 'Item was successfully created');
     }
@@ -79,11 +90,13 @@ class ToDoItemController extends Controller
 
         $canEditUsers = false;
         $users = User::whereNot('id',Auth::id())->get();
+        $categories = Category::get();
         $selectedUserIds = $toDoItem->users()->pluck('id')->toArray();
+        $selectedCategoryIds = $toDoItem->categories()->pluck('id')->toArray();
         if(Auth::id() == $toDoItem->user_id){
             $canEditUsers = true;
         }
-        return view('to_do_item.edit', compact('toDoItem','users','selectedUserIds','canEditUsers'));
+        return view('to_do_item.edit', compact('toDoItem','users','selectedUserIds','selectedCategoryIds','canEditUsers','categories'));
 
 
     }
@@ -108,6 +121,12 @@ class ToDoItemController extends Controller
             $toDoItem->users()->sync($data['users']);
         } else {
             $toDoItem->users()->detach();
+        }
+        //handle cats
+        if (isset($data['categories'])) {
+            $toDoItem->categories()->sync($data['categories']);
+        } else {
+            $toDoItem->categories()->detach();
         }
 
         return redirect('/todoitems')->with('success', 'Item was successfully updated');

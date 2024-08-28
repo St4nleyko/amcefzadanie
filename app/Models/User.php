@@ -48,7 +48,6 @@ class User extends Authenticatable
     ];
 
 
-    //strict
     public function todoItems()
     {
         return $this->belongsToMany(TodoItem::class, 'item_users');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\CategoryController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,19 +20,19 @@ class ToDoItem extends Model
 
 
 
-    public function user()
+    public function owner()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function category()
-    {
-        return $this->hasOne(Category::class);
     }
 
     public function users()
     {
         return $this->belongsToMany(User::class, 'item_users');
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'category_items');
     }
 
 

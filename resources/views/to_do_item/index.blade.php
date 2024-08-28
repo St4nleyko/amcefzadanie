@@ -26,6 +26,7 @@
                             <thead>
                             <th>ID</th>
                             <th>{{ __('Name') }}</th>
+                            <th>{{ __('Categories') }}</th>
                             <th>{{ __('Description') }}</th>
                             <th></th>
                             <th>{{ __('Completed') }}</th>
@@ -36,7 +37,7 @@
                                 <tr @if($toDoItem->is_completed) class="text-decoration-line-through" @endif>
                                     <td>{{$toDoItem->id}}</td>
                                     <td>{{$toDoItem->name}}</td>
-                                    <td>{{$toDoItem->description}}</td>
+                                    <td><label class="badge text-bg-info">{{ $toDoItem->categories->pluck('name')->implode(', ') }}</label></td>                                    <td>{{$toDoItem->description}}</td>
                                     <td>
                                         @if($toDoItem->is_shared)
                                             <label class="badge text-bg-info">{{__('Shared') }}</label>

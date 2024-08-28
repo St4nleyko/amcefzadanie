@@ -20,6 +20,19 @@
                                 <textarea value="{{$toDoItem->description}}" id="description"  class="form-control" name="description">{{$toDoItem->description}}
                                 </textarea>
                             </div>
+                            <div class="form-group ">
+                                <label for="categories" class="col-md-4 col-form-label text-md-right">{{ __('Categories') }}</label>
+                                <div class="">
+                                    <select class="form-select" multiple name="categories[]" id="catSelect">
+                                        @foreach ($categories as $category)
+                                            <option value="{{ $category->id }}"
+                                                    @if(in_array($category->id, $selectedCategoryIds)) selected @endif>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                             @if($canEditUsers)
                                 <div class="form-group ">
                                     <label for="users" class="col-md-4 col-form-label text-md-right">{{ __('Users') }}</label>
