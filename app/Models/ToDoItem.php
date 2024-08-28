@@ -29,6 +29,11 @@ class ToDoItem extends Model
         return $this->hasOne(Category::class);
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'item_users');
+    }
+
 
     //showcase for dynamic models
     protected $inputsConfigs = [

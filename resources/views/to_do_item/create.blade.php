@@ -11,7 +11,7 @@
                             @csrf
                             <div class="form-group ">
                                 <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Name') }}</label>
-                                <div class="col-md-6">
+                                <div class="">
                                     <input id="name" type="text" class="form-control" name="name"  required autocomplete="name" autofocus>
                                 </div>
                             </div>
@@ -19,8 +19,19 @@
                                 <label for="name" class=" text-md-right">{{ __('Description') }}</label>
                                 <textarea id="description" type="checkbox"  class="form-control" name="description"></textarea>
                             </div>
+                            <div class="form-group ">
+                                <label for="users" class="col-md-4 col-form-label text-md-right">{{ __('Users') }}</label>
+                                <div class="">
+                                    <select class="form-select" multiple name="users[]" id="userSelect">
+                                        @foreach ($users as $user)
+                                            <option value="{{$user->id}}">{{$user->name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="form-group row mb-0 mt-2">
-                                <div class="col-md-6 offset-md-4">
+                                <div class=" ">
                                     <button type="submit" class="btn btn-primary">
                                         {{ __('Create') }}
                                     </button>

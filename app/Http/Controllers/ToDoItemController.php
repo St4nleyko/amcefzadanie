@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ToDoItem;
 use App\Http\Requests\StoreToDoItemRequest;
 use App\Http\Requests\UpdateToDoItemRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +16,18 @@ class ToDoItemController extends Controller
      */
     public function index(Request $request)
     {
-        $toDoItems = ToDoItem::where('user_id',Auth::id())->orderBy('id','DESC')->withTrashed()->paginate(10);
+        //display my data + check for shared with me
+        $toDoItems = ToDoItem::where('user_id', Auth::id())
+            ->orWhereHas('users', function($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->orderBy('id', 'DESC')
+            ->withTrashed()
+            ->paginate(10);
+        //add indicator that it has been shared with me or not - bool
+        foreach ($toDoItems as $item) {
+            $item->is_shared = $item->user_id !== Auth::id();
+        }
         return view('to_do_item.index', compact('toDoItems'));
 
     }
@@ -25,7 +37,8 @@ class ToDoItemController extends Controller
      */
     public function create()
     {
-        return view('to_do_item.create');
+        $users = User::whereNot('id',Auth::id())->get();
+        return view('to_do_item.create', compact('users'));
 
     }
 
@@ -39,8 +52,18 @@ class ToDoItemController extends Controller
         ]);
 
         $data=$request->except('_token');
+        if (isset($data['users'])) {
+            $userIds = $data['users'];
+            unset($data['users']);
+        }
+
         $data['user_id'] = Auth::id();
-        $createToDoItem = ToDoItem::create($data);
+        $toDoItem = ToDoItem::create($data);
+
+
+        if (!empty($userIds)) {
+            $toDoItem->users()->attach($userIds);
+        }
         return redirect('/todoitems')->with('success', 'Item was successfully created');
     }
 
@@ -50,7 +73,17 @@ class ToDoItemController extends Controller
      */
     public function edit(ToDoItem $toDoItem)
     {
-        return view('to_do_item.edit', compact('toDoItem'));
+        if (Auth::id() != $toDoItem->user_id && !$toDoItem->users->pluck('id')->contains(Auth::id())) {
+            return redirect('/todoitems')->withErrors("This item hasn't been shared with you");
+        }
+
+        $canEditUsers = false;
+        $users = User::whereNot('id',Auth::id())->get();
+        $selectedUserIds = $toDoItem->users()->pluck('id')->toArray();
+        if(Auth::id() == $toDoItem->user_id){
+            $canEditUsers = true;
+        }
+        return view('to_do_item.edit', compact('toDoItem','users','selectedUserIds','canEditUsers'));
 
 
     }
@@ -69,6 +102,14 @@ class ToDoItemController extends Controller
             $data['is_completed'] = 0;
         }
         $toDoItem->update($data);
+
+        //handle users
+        if (isset($data['users'])) {
+            $toDoItem->users()->sync($data['users']);
+        } else {
+            $toDoItem->users()->detach();
+        }
+
         return redirect('/todoitems')->with('success', 'Item was successfully updated');
 
     }
