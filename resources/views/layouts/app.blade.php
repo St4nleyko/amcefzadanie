@@ -35,12 +35,15 @@
                             @role('superAdmin')
                             <!-- only admin links here -->
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('role') }}">{{ __('Role') }}</a>
+                                <a class="nav-link" href="{{ route('role') }}">{{ __('Roles') }}</a>
                             </li>
                             @endrole
                             @role('superAdmin||admin')
                             <a class="nav-link" href="{{ route('index.user') }}">{{ __('Users') }}</a>
+                            <a class="nav-link" href="{{ route('category.index') }}">{{ __('Categories') }}</a>
                             @endrole
+                            <a class="nav-link" href="{{ route('todoitem.index') }}">{{ __('ToDo Items') }}</a>
+
                         </ul>
 
                         <!-- Right Side Of Navbar -->

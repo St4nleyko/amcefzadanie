@@ -17,8 +17,7 @@
                             </div>
                             <div class="form-group ">
                                 <label for="description" class=" text-md-right">{{ __('Description') }}</label>
-                                <textarea value="{{$toDoItem->description}}" id="description"  class="form-control" name="description">
-                                    {{$toDoItem->description}}
+                                <textarea value="{{$toDoItem->description}}" id="description"  class="form-control" name="description">{{$toDoItem->description}}
                                 </textarea>
                             </div>
                             <div class="form-group ">

@@ -47,9 +47,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/deleteuser/{id}', [UserController::class, 'deleteUser'])->name('delete.user');
         Route::get('/createuser', [UserController::class, 'createUser'])->name('create.user');
         Route::post('/storeuser', [UserController::class, 'storeUser'])->name('store.user');
+
+        //admin categories model
+        include 'models/categories.php';
     });
 
-    //models routes
-    include 'models/categories.php';
+    //models auth routes
     include 'models/to_do_items.php';
 });

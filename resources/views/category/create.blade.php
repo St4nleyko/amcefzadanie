@@ -5,9 +5,9 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">{{ __('Create ToDo Item') }}</div>
+                    <div class="card-header">{{ __('Create Category') }}</div>
                     <div class="card-body">
-                        <form method="POST" action="{{ route('todoitem.store') }}">
+                        <form method="POST" action="{{ route('category.store') }}">
                             @csrf
                             <div class="form-group ">
                                 <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Name') }}</label>
@@ -18,7 +18,6 @@
                             <div class="form-group ">
                                 <label for="name" class=" text-md-right">{{ __('Description') }}</label>
                                 <textarea id="description" type="checkbox"  class="form-control" name="description"></textarea>
-                            </div>
                             <div class="form-group row mb-0 mt-2">
                                 <div class="col-md-6 offset-md-4">
                                     <button type="submit" class="btn btn-primary">
